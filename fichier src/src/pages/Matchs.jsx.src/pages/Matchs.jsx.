@@ -1,5 +1,6 @@
 import { estCompetitionAutorisee } from "../config/competitions.js";
 import { enrichirAvecAnalyses } from "../analyse/moteur.js";
+import { enrichirAvecPredictions } from "../prediction/moteur.js";
 
 // Format normalisé d'un match :
 // {
@@ -13,17 +14,19 @@ import { enrichirAvecAnalyses } from "../analyse/moteur.js";
 //   exterieur: { id: "...", nom: "Équipe B", logo: "https://..." ou null },
 //   scoreDomicile: 1 ou null,
 //   scoreExterieur: 0 ou null,
+//   scoreMiTemps: { domicile: 0, exterieur: 1 } (facultatif)
 //   stats: { ... }                    (facultatif, voir StatsMatch.jsx)
 //   absences: { domicile: [...], exterieur: [...] } (facultatif)
 // }
 //
 // Chaque source de données est un "connecteur" :
 // un objet { nom, charger } où charger() renvoie une liste de matchs
-// au format ci-dessus. Pour que l'analyse automatique fonctionne, la source
-// doit fournir aussi les matchs terminés récents (5 à 10 par équipe).
+// au format ci-dessus. Pour que l'analyse et la prédiction fonctionnent,
+// la source doit fournir aussi les matchs terminés récents (au moins 5 par
+// équipe et 30 par compétition).
 // Aucune donnée n'est inventée.
 // Les compétitions africaines sont exclues automatiquement.
-// Le champ analyse est ajouté automatiquement aux matchs du jour.
+// Les champs analyse et prediction sont ajoutés automatiquement.
 
 const CONNECTEURS = [];
 
@@ -50,21 +53,4 @@ export async function chargerMatchs() {
   );
 
   if (resultats.every((r) => r.status === "rejected")) {
-    throw new Error("Toutes les sources de données ont échoué.");
-  }
-
-  const matchs = [];
-  const dejaVus = new Set();
-
-  for (const r of resultats) {
-    if (r.status !== "fulfilled") continue;
-    for (const m of r.value) {
-      if (!estValide(m) || dejaVus.has(m.id)) continue;
-      if (!estCompetitionAutorisee(m)) continue;
-      dejaVus.add(m.id);
-      matchs.push(m);
-    }
-  }
-
-  return enrichirAvecAnalyses(matchs);
-}
+    throw new Error("Toutes les sources
