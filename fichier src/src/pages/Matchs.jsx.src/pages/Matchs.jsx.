@@ -132,8 +132,8 @@ function CarteMatch({ match }) {
   );
 }
 
-export default function Matchs() {
-  const [onglet, setOnglet] = useState("aujourdhui");
+export default function Matchs({ ongletInitial = "aujourdhui" }) {
+    const [onglet, setOnglet] = useState(ongletInitial);
   const [competition, setCompetition] = useState("toutes");
   const [matchs, setMatchs] = useState([]);
   const [chargement, setChargement] = useState(true);
