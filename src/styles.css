@@ -287,4 +287,201 @@ body {
   color: var(--menthe);
   border-color: var(--menthe);
 }
+/* ===== Plateforme : barre latérale ===== */
+.plateforme {
+  display: flex;
+  min-height: 100%;
+}
 
+.barre-laterale {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 280px;
+  max-width: 85%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--bordure);
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 12px
+    calc(16px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.25s ease;
+  z-index: 30;
+}
+
+.barre-laterale.ouverte {
+  transform: translateX(0);
+}
+
+.fond-menu {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 9, 24, 0.6);
+  z-index: 20;
+  animation: apparition 0.2s ease;
+}
+
+.marque {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 16px;
+  border-bottom: 1px solid var(--bordure);
+  margin-bottom: 12px;
+}
+
+.marque-nom {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--menthe);
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  color: var(--texte-doux);
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.menu-item:hover {
+  background: var(--surface-2);
+  color: var(--texte);
+}
+
+.menu-item.actif {
+  color: var(--menthe);
+  background: var(--surface-2);
+  border-color: var(--menthe);
+}
+
+.menu-icone {
+  width: 22px;
+  text-align: center;
+  font-size: 18px;
+}
+
+.pied-menu {
+  margin-top: 12px;
+  padding: 0 8px;
+  font-size: 11px;
+  color: var(--texte-doux);
+}
+
+/* ===== Zone principale ===== */
+.zone-principale {
+  flex: 1;
+  min-width: 0;
+}
+
+.haut {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: calc(56px + env(safe-area-inset-top, 0px));
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  background: var(--fond);
+  border-bottom: 1px solid var(--bordure);
+}
+
+.haut-titre {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.bouton-menu {
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  color: var(--menthe);
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.contenu {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 16px 32px;
+}
+
+/* Les onglets restent sous l'en-tête fixe */
+.onglets {
+  top: calc(56px + env(safe-area-inset-top, 0px));
+}
+
+/* ===== Animations discrètes ===== */
+@keyframes apparition {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.carte-match,
+.section-prep {
+  animation: apparition 0.3s ease;
+}
+
+.carte-match {
+  transition: border-color 0.15s ease;
+}
+
+.carte-match:hover {
+  border-color: var(--menthe);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ===== Tablette et ordinateur : barre toujours visible ===== */
+@media (min-width: 768px) {
+  .barre-laterale {
+    transform: none;
+    max-width: none;
+    width: 260px;
+  }
+
+  .zone-principale {
+    margin-left: 260px;
+  }
+
+  .bouton-menu,
+  .fond-menu {
+    display: none;
+  }
+
+  .contenu {
+    padding: 24px 24px 40px;
+  }
