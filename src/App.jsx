@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Matchs from "./pages/Matchs.jsx";
-
+import Dashboard from "./pages/Dashboard.jsx";
 const SECTIONS = [
   { id: "dashboard", label: "Tableau de bord", icone: "🏠" },
   { id: "jour", label: "Matchs du jour", icone: "📅", onglet: "aujourdhui" },
@@ -46,7 +46,7 @@ function EnPreparation({ section }) {
 }
 
 export default function App() {
-  const [actif, setActif] = useState("jour");
+  const [actif, setActif] = useState("dashboard");
   const [ouvert, setOuvert] = useState(false);
   const section = SECTIONS.find((s) => s.id === actif);
 
