@@ -1,4 +1,4 @@
-
+il
 :root {
   --fond: #0a1128;
   --surface: #111b3a;
@@ -194,3 +194,72 @@ body {
 .erreur {
   color: var(--rouge);
 }
+/* Navigation du bas */
+.contenu {
+  padding-bottom: 96px;
+}
+
+.nav-bas {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  background: var(--surface);
+  border-top: 1px solid var(--bordure);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 10;
+}
+
+.nav-bouton {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px;
+  background: none;
+  border: none;
+  color: var(--texte-doux);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nav-bouton.actif {
+  color: var(--menthe);
+}
+
+.nav-icone {
+  font-size: 20px;
+}
+
+/* Sections en préparation */
+.section-prep {
+  text-align: center;
+  padding: 32px 16px;
+  background: var(--surface);
+  border: 1px dashed var(--bordure);
+  border-radius: 14px;
+}
+
+.section-prep h2 {
+  font-size: 18px;
+  color: var(--menthe);
+  margin-bottom: 12px;
+}
+
+.section-prep p {
+  font-size: 14px;
+  color: var(--texte);
+  line-height: 1.5;
+}
+
+.section-prep-note {
+  margin-top: 12px;
+  font-size: 12px !important;
+  color: var(--texte-doux) !important;
+  }
+
