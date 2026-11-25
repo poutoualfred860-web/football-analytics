@@ -1,244 +1,70 @@
-import { useEffect, useState } from "react";
-import { chargerMatchs } from "../services/matchs.js";
-import { COMPETITIONS_PRINCIPALES } from "../config/competitions.js";
-import StatsMatch from "../components/StatsMatch.jsx";
+import { estCompetitionAutorisee } from "../config/competitions.js";
+import { enrichirAvecAnalyses } from "../analyse/moteur.js";
 
-const FUSEAU = "Africa/Porto-Novo";
+// Format normalisé d'un match :
+// {
+//   id: "identifiant-unique",
+//   competition: "Nom de la compétition",
+//   confederation: "UEFA" (facultatif ; "CAF" = match exclu),
+//   dateUTC: "2026-11-25T19:00:00Z",
+//   statut: "LIVE" | "A_VENIR" | "TERMINE",
+//   minute: 63,                       (facultatif, pour LIVE)
+//   domicile: { id: "...", nom: "Équipe A", logo: "https://..." ou null },
+//   exterieur: { id: "...", nom: "Équipe B", logo: "https://..." ou null },
+//   scoreDomicile: 1 ou null,
+//   scoreExterieur: 0 ou null,
+//   stats: { ... }                    (facultatif, voir StatsMatch.jsx)
+//   absences: { domicile: [...], exterieur: [...] } (facultatif)
+// }
+//
+// Chaque source de données est un "connecteur" :
+// un objet { nom, charger } où charger() renvoie une liste de matchs
+// au format ci-dessus. Pour que l'analyse automatique fonctionne, la source
+// doit fournir aussi les matchs terminés récents (5 à 10 par équipe).
+// Aucune donnée n'est inventée.
+// Les compétitions africaines sont exclues automatiquement.
+// Le champ analyse est ajouté automatiquement aux matchs du jour.
 
-const ONGLETS = [
-  { id: "live", label: "En direct" },
-  { id: "aujourdhui", label: "Aujourd'hui" },
-  { id: "demain", label: "Demain" },
-  { id: "avenir", label: "À venir" },
-  { id: "termines", label: "Terminés" }
-];
+const CONNECTEURS = [];
 
-const MESSAGES_VIDES = {
-  live: "Aucun match en direct pour le moment.",
-  aujourdhui: "Aucun match aujourd'hui.",
-  demain: "Aucun match demain.",
-  avenir: "Aucun match à venir.",
-  termines: "Aucun match terminé."
-};
+const STATUTS = ["LIVE", "A_VENIR", "TERMINE"];
 
-function cleJour(date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: FUSEAU,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
-}
-
-function formatHeure(date) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    timeZone: FUSEAU,
-    hour: "2-digit",
-    minute: "2-digit"
-  }).format(date);
-}
-
-function formatDate(date) {
-  return new Intl.DateTimeFormat("fr-FR", {
-    timeZone: FUSEAU,
-    weekday: "short",
-    day: "numeric",
-    month: "short"
-  }).format(date);
-}
-
-function filtrer(matchs, onglet) {
-  const aujourdhui = cleJour(new Date());
-  const demain = cleJour(new Date(Date.now() + 24 * 60 * 60 * 1000));
-  return matchs.filter((m) => {
-    const jour = cleJour(new Date(m.dateUTC));
-    if (onglet === "live") return m.statut === "LIVE";
-    if (onglet === "aujourdhui") return jour === aujourdhui;
-    if (onglet === "demain") return jour === demain;
-    if (onglet === "avenir") return m.statut === "A_VENIR" && jour > aujourdhui;
-    if (onglet === "termines") return m.statut === "TERMINE";
-    return false;
-  });
-}
-
-function trier(liste, onglet) {
-  const copie = [...liste];
-  copie.sort((a, b) => new Date(a.dateUTC) - new Date(b.dateUTC));
-  if (onglet === "termines") copie.reverse();
-  return copie;
-}
-
-// Compétitions présentes dans la liste : les principales d'abord
-// (dans l'ordre de la configuration), puis les autres par ordre alphabétique.
-function competitionsDisponibles(liste) {
-  const noms = [...new Set(liste.map((m) => m.competition).filter(Boolean))];
-  const ordre = COMPETITIONS_PRINCIPALES.map((c) => c.nom.toLowerCase());
-  const rang = (nom) => {
-    const i = ordre.indexOf(nom.toLowerCase());
-    return i === -1 ? ordre.length : i;
-  };
-  noms.sort((a, b) => rang(a) - rang(b) || a.localeCompare(b, "fr"));
-  return noms;
-}
-
-function LogoEquipe({ equipe }) {
-  if (equipe.logo) {
-    return (
-      <img
-        className="logo-equipe"
-        src={equipe.logo}
-        alt={equipe.nom}
-        loading="lazy"
-      />
-    );
-  }
-  return <div className="logo-vide">{equipe.nom.slice(0, 2).toUpperCase()}</div>;
-}
-
-function CarteMatch({ match }) {
-  const [ouvert, setOuvert] = useState(false);
-  const date = new Date(match.dateUTC);
-  const aDesScores =
-    match.scoreDomicile !== null &&
-    match.scoreDomicile !== undefined &&
-    match.scoreExterieur !== null &&
-    match.scoreExterieur !== undefined;
-
-  let statutTexte = "À venir";
-  let statutClasse = "statut";
-  if (match.statut === "LIVE") {
-    statutTexte = match.minute ? `● EN DIRECT ${match.minute}'` : "● EN DIRECT";
-    statutClasse = "statut live";
-  } else if (match.statut === "TERMINE") {
-    statutTexte = "Terminé";
-  }
-
+function estValide(m) {
   return (
-    <article className={ouvert ? "carte-match ouverte" : "carte-match"}>
-      <button
-        type="button"
-        className="carte-bouton"
-        aria-expanded={ouvert}
-        onClick={() => setOuvert(!ouvert)}
-      >
-        <div className="carte-entete">
-          <span>
-            {match.competition} · {formatDate(date)} {formatHeure(date)}
-          </span>
-          <span className={statutClasse}>{statutTexte}</span>
-        </div>
-        <div className="equipes">
-          <div className="equipe">
-            <LogoEquipe equipe={match.domicile} />
-            <span>{match.domicile.nom}</span>
-          </div>
-          <div className="score">
-            {aDesScores
-              ? `${match.scoreDomicile} - ${match.scoreExterieur}`
-              : formatHeure(date)}
-          </div>
-          <div className="equipe">
-            <LogoEquipe equipe={match.exterieur} />
-            <span>{match.exterieur.nom}</span>
-          </div>
-        </div>
-        <div className="carte-bascule">
-          {ouvert ? "Masquer les statistiques ▲" : "Voir les statistiques ▼"}
-        </div>
-      </button>
-
-      {ouvert && <StatsMatch match={match} />}
-    </article>
+    m &&
+    m.id &&
+    STATUTS.includes(m.statut) &&
+    !Number.isNaN(new Date(m.dateUTC).getTime()) &&
+    m.domicile &&
+    m.domicile.nom &&
+    m.exterieur &&
+    m.exterieur.nom
   );
 }
 
-export default function Matchs({ ongletInitial = "aujourdhui" }) {
-  const [onglet, setOnglet] = useState(ongletInitial);
-  const [competition, setCompetition] = useState("toutes");
-  const [matchs, setMatchs] = useState([]);
-  const [chargement, setChargement] = useState(true);
-  const [erreur, setErreur] = useState(null);
+export async function chargerMatchs() {
+  if (CONNECTEURS.length === 0) return [];
 
-  useEffect(() => {
-    let actif = true;
+  const resultats = await Promise.allSettled(
+    CONNECTEURS.map((c) => c.charger())
+  );
 
-    async function charger() {
-      try {
-        const donnees = await chargerMatchs();
-        if (!actif) return;
-        setMatchs(donnees);
-        setErreur(null);
-      } catch (e) {
-        if (!actif) return;
-        setErreur("Impossible de charger les matchs pour le moment.");
-      } finally {
-        if (actif) setChargement(false);
-      }
+  if (resultats.every((r) => r.status === "rejected")) {
+    throw new Error("Toutes les sources de données ont échoué.");
+  }
+
+  const matchs = [];
+  const dejaVus = new Set();
+
+  for (const r of resultats) {
+    if (r.status !== "fulfilled") continue;
+    for (const m of r.value) {
+      if (!estValide(m) || dejaVus.has(m.id)) continue;
+      if (!estCompetitionAutorisee(m)) continue;
+      dejaVus.add(m.id);
+      matchs.push(m);
     }
+  }
 
-    charger();
-    const minuteur = setInterval(charger, 60000);
-    return () => {
-      actif = false;
-      clearInterval(minuteur);
-    };
-  }, []);
-
-  const base = trier(filtrer(matchs, onglet), onglet);
-  const competitions = competitionsDisponibles(base);
-  const choix = competitions.includes(competition) ? competition : "toutes";
-  const liste =
-    choix === "toutes" ? base : base.filter((m) => m.competition === choix);
-
-  return (
-    <section>
-      <nav className="onglets">
-        {ONGLETS.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            className={o.id === onglet ? "onglet actif" : "onglet"}
-            onClick={() => setOnglet(o.id)}
-          >
-            {o.label}
-          </button>
-        ))}
-      </nav>
-
-      {competitions.length > 1 && (
-        <div className="filtre-competitions">
-          <button
-            type="button"
-            className={choix === "toutes" ? "puce actif" : "puce"}
-            onClick={() => setCompetition("toutes")}
-          >
-            Toutes
-          </button>
-          {competitions.map((nom) => (
-            <button
-              key={nom}
-              type="button"
-              className={choix === nom ? "puce actif" : "puce"}
-              onClick={() => setCompetition(nom)}
-            >
-              {nom}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {chargement && <div className="chargement">Chargement des matchs…</div>}
-      {!chargement && erreur && <div className="erreur">{erreur}</div>}
-      {!chargement && !erreur && liste.length === 0 && (
-        <div className="vide">{MESSAGES_VIDES[onglet]}</div>
-      )}
-      {!chargement && !erreur && liste.length > 0 && (
-        <div className="liste">
-          {liste.map((m) => (
-            <CarteMatch key={m.id} match={m} />
-          ))}
-        </div>
-      )}
-    </section>
-  );
+  return enrichirAvecAnalyses(matchs);
 }
