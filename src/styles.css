@@ -262,4 +262,29 @@ body {
   font-size: 12px !important;
   color: var(--texte-doux) !important;
   }
+/* Filtre par compétition */
+.filtre-competitions {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+}
+
+.puce {
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texte-doux);
+  background: var(--surface);
+  border: 1px solid var(--bordure);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.puce.actif {
+  color: var(--menthe);
+  border-color: var(--menthe);
+}
 
