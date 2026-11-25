@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { chargerMatchs } from "../services/matchs.js";
+import { COMPETITIONS_PRINCIPALES } from "../config/competitions.js";
 
 const FUSEAU = "Africa/Porto-Novo";
 
@@ -62,6 +63,19 @@ function trier(liste, onglet) {
   return copie;
 }
 
+// Compétitions présentes dans la liste : les principales d'abord
+// (dans l'ordre de la configuration), puis les autres par ordre alphabétique.
+function competitionsDisponibles(liste) {
+  const noms = [...new Set(liste.map((m) => m.competition).filter(Boolean))];
+  const ordre = COMPETITIONS_PRINCIPALES.map((c) => c.nom.toLowerCase());
+  const rang = (nom) => {
+    const i = ordre.indexOf(nom.toLowerCase());
+    return i === -1 ? ordre.length : i;
+  };
+  noms.sort((a, b) => rang(a) - rang(b) || a.localeCompare(b, "fr"));
+  return noms;
+}
+
 function LogoEquipe({ equipe }) {
   if (equipe.logo) {
     return (
@@ -120,6 +134,7 @@ function CarteMatch({ match }) {
 
 export default function Matchs() {
   const [onglet, setOnglet] = useState("aujourdhui");
+  const [competition, setCompetition] = useState("toutes");
   const [matchs, setMatchs] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
@@ -149,7 +164,11 @@ export default function Matchs() {
     };
   }, []);
 
-  const liste = trier(filtrer(matchs, onglet), onglet);
+  const base = trier(filtrer(matchs, onglet), onglet);
+  const competitions = competitionsDisponibles(base);
+  const choix = competitions.includes(competition) ? competition : "toutes";
+  const liste =
+    choix === "toutes" ? base : base.filter((m) => m.competition === choix);
 
   return (
     <section>
@@ -165,6 +184,28 @@ export default function Matchs() {
           </button>
         ))}
       </nav>
+
+      {competitions.length > 1 && (
+        <div className="filtre-competitions">
+          <button
+            type="button"
+            className={choix === "toutes" ? "puce actif" : "puce"}
+            onClick={() => setCompetition("toutes")}
+          >
+            Toutes
+          </button>
+          {competitions.map((nom) => (
+            <button
+              key={nom}
+              type="button"
+              className={choix === nom ? "puce actif" : "puce"}
+              onClick={() => setCompetition(nom)}
+            >
+              {nom}
+            </button>
+          ))}
+        </div>
+      )}
 
       {chargement && <div className="chargement">Chargement des matchs…</div>}
       {!chargement && erreur && <div className="erreur">{erreur}</div>}
