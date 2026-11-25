@@ -1,4 +1,3 @@
-
 // Compétitions principales à couvrir.
 // Les autres compétitions européennes et internationales
 // sont acceptées automatiquement, sauf les compétitions africaines.
@@ -22,4 +21,19 @@ function mots(texte) {
   return String(texte || "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g
+    .replace(/[\u0300-\u036f]/g, "")
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+}
+
+// Un match est africain si sa source l'indique (confederation "CAF")
+// ou si le nom de sa compétition contient un mot africain.
+export function estCompetitionAfricaine(match) {
+  if (!match) return false;
+  if (String(match.confederation || "").toUpperCase() === "CAF") return true;
+  return mots(match.competition).some((m) => MOTS_AFRICAINS.includes(m));
+}
+
+export function estCompetitionAutorisee(match) {
+  return !estCompetitionAfricaine(match);
+}
