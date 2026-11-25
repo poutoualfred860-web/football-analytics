@@ -1,7 +1,10 @@
+import { estCompetitionAutorisee } from "../config/competitions.js";
+
 // Format normalisé d'un match :
 // {
 //   id: "identifiant-unique",
 //   competition: "Nom de la compétition",
+//   confederation: "UEFA" (facultatif ; "CAF" = match exclu),
 //   dateUTC: "2026-11-25T19:00:00Z",
 //   statut: "LIVE" | "A_VENIR" | "TERMINE",
 //   minute: 63,                       (facultatif, pour LIVE)
@@ -14,6 +17,7 @@
 // Chaque source de données est un "connecteur" :
 // un objet { nom, charger } où charger() renvoie une liste de matchs
 // au format ci-dessus. Aucune donnée n'est inventée.
+// Les compétitions africaines sont exclues automatiquement.
 
 const CONNECTEURS = [];
 
@@ -50,6 +54,7 @@ export async function chargerMatchs() {
     if (r.status !== "fulfilled") continue;
     for (const m of r.value) {
       if (!estValide(m) || dejaVus.has(m.id)) continue;
+      if (!estCompetitionAutorisee(m)) continue;
       dejaVus.add(m.id);
       matchs.push(m);
     }
