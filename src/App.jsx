@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Matchs from "./pages/Matchs.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
+import Predictions from "./pages/Predictions.jsx";
 const SECTIONS = [
   { id: "dashboard", label: "Tableau de bord", icone: "🏠" },
   { id: "jour", label: "Matchs du jour", icone: "📅", onglet: "aujourdhui" },
