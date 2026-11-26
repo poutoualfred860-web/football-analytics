@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { chargerMatchs } from "../services/matchs.js";
+import { matchsClasses } from "../analyse/classement.js";
 import { COMPETITIONS_PRINCIPALES } from "../config/competitions.js";
 
 const FUSEAU = "Africa/Porto-Novo";
 
-// Un match peut recevoir plus tard deux champs facultatifs :
-//   analyse: { niveau: "VERT" | "ORANGE" | "ROUGE", score: nombre }
-//   prediction: { ... }
+// Un match peut recevoir automatiquement trois champs facultatifs :
+//   analyse, prediction, classement (voir services/matchs.js).
 // Tant qu'ils sont absents, les compteurs correspondants restent à 0.
 
 function cleJour(date) {
@@ -127,15 +127,16 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.dateUTC) - new Date(b.dateUTC))
     .slice(0, 5);
 
-  const niveaux = { VERT: 0, ORANGE: 0, ROUGE: 0 };
-  analyses.forEach((m) => {
-    if (niveaux[m.analyse.niveau] !== undefined) niveaux[m.analyse.niveau] += 1;
+  // Classement statistique du jour (fiabilité de l'analyse, jamais la
+  // hauteur d'une probabilité).
+  const classes = matchsClasses(matchs);
+  const categories = { VERT: 0, ORANGE: 0, ROUGE: 0 };
+  classes.forEach((m) => {
+    if (categories[m.classement.categorie] !== undefined) {
+      categories[m.classement.categorie] += 1;
+    }
   });
-
-  const interessants = analyses
-    .filter((m) => typeof m.analyse.score === "number")
-    .sort((a, b) => b.analyse.score - a.analyse.score)
-    .slice(0, 5);
+  const interessants = classes.slice(0, 5);
 
   const competitions = COMPETITIONS_PRINCIPALES.map((c) => ({
     nom: c.nom,
@@ -165,79 +166,10 @@ export default function Dashboard() {
       <Bloc
         titre="Matchs les plus intéressants statistiquement"
         liste={interessants}
-        vide="Aucune analyse statistique disponible pour le moment. Cette zone se remplira quand le moteur d'analyse sera branché."
+        vide="Aucune analyse statistique disponible pour le moment. Cette zone se remplira quand les données seront branchées."
       >
         <ul className="liste-lignes">
           {interessants.map((m) => (
             <Ligne
               key={m.id}
               match={m}
-              extra={`${m.analyse.niveau || ""} · indice ${m.analyse.score}`}
-            />
-          ))}
-        </ul>
-      </Bloc>
-
-      <div className="grille-blocs">
-        <Bloc
-          titre="Prochains matchs"
-          liste={prochains}
-          vide="Aucun match à venir."
-        >
-          <ul className="liste-lignes">
-            {prochains.map((m) => (
-              <Ligne key={m.id} match={m} />
-            ))}
-          </ul>
-        </Bloc>
-
-        <Bloc
-          titre="Derniers résultats"
-          liste={resultats}
-          vide="Aucun résultat disponible."
-        >
-          <ul className="liste-lignes">
-            {resultats.map((m) => (
-              <Ligne key={m.id} match={m} />
-            ))}
-          </ul>
-        </Bloc>
-      </div>
-
-      <div className="grille-blocs">
-        <Bloc titre="Résumé des analyses automatiques">
-          {analyses.length === 0 ? (
-            <p className="bloc-vide">
-              Aucune analyse disponible pour le moment.
-            </p>
-          ) : null}
-          <div className="niveaux">
-            <div className="niveau vert">
-              <strong>{niveaux.VERT}</strong>
-              <span>VERT</span>
-            </div>
-            <div className="niveau orange">
-              <strong>{niveaux.ORANGE}</strong>
-              <span>ORANGE</span>
-            </div>
-            <div className="niveau rouge">
-              <strong>{niveaux.ROUGE}</strong>
-              <span>ROUGE</span>
-            </div>
-          </div>
-        </Bloc>
-
-        <Bloc titre="Principales compétitions">
-          <ul className="liste-competitions">
-            {competitions.map((c) => (
-              <li key={c.nom} className="competition">
-                <span>{c.nom}</span>
-                <strong>{c.total}</strong>
-              </li>
-            ))}
-          </ul>
-        </Bloc>
-      </div>
-    </div>
-  );
-}
