@@ -334,4 +334,107 @@ export function predireMatch(match, historique) {
       top[0].probabilite, 0.4, qualite, [
         "Calculé sur tous les scores de 0-0 à 10-10 (modèle de Poisson).",
         `Scores suivants : ${top.slice(1, 4).map((s) => `${s.score} (${pct(s.probabilite)} %)`).join(", ")}.`,
-        "Le score exact est le
+                "Le score exact est le marché le plus incertain : sa probabilité reste toujours faible."
+      ])
+  );
+
+  const indisponibles = [];
+
+  const mt = partPremiereMiTemps(historique, match);
+  if (mt) {
+    const mMT = matriceScores(lD * mt.part, lE * mt.part, 6);
+    const rMT = resultat1N2(mMT);
+    const raisonsMT = [
+      `Part des buts marqués en 1re mi-temps dans la ligue : ${pct(mt.part)} % (sur ${mt.echantillon} matchs).`,
+      `Buts attendus en 1re mi-temps : ${nomD} ${fr(lD * mt.part)} – ${nomE} ${fr(lE * mt.part)}.`
+    ];
+    marches.push(
+      entree("mt_1", "Autres marchés", "Mi-temps : victoire domicile", rMT.domicile, 0.75, qualite, raisonsMT),
+      entree("mt_N", "Autres marchés", "Mi-temps : match nul", rMT.nul, 0.75, qualite, raisonsMT),
+      entree("mt_2", "Autres marchés", "Mi-temps : victoire extérieur", rMT.exterieur, 0.75, qualite, raisonsMT),
+      entree("mt_plus05", "Autres marchés", "Plus de 0,5 but en 1re mi-temps", 1 - mMT[0][0], 0.75, qualite, raisonsMT)
+    );
+  } else {
+    indisponibles.push(
+      { marche: "Résultat à la mi-temps", raison: "Donnée indisponible : la source ne fournit pas assez de scores à la mi-temps." },
+      { marche: "Plus de 0,5 but en 1re mi-temps", raison: "Donnée indisponible : la source ne fournit pas assez de scores à la mi-temps." }
+    );
+  }
+
+  const corners = marcheCompteur(historique, match, (m) => m.stats && m.stats.corners);
+  if (corners) {
+    const raisons = [
+      `Corners attendus : ${fr(corners.total, 1)} au total (${nomD} ${fr(corners.modele.lambdaDomicile, 1)} + ${nomE} ${fr(corners.modele.lambdaExterieur, 1)}).`,
+      `Moyenne de la ligue : ${fr(corners.moyLigue, 1)} par match ; ligne retenue : ${fr(corners.ligne, 1)}.`,
+      `Calculé sur ${corners.modele.echantillonLigue} matchs avec cette statistique (loi de Poisson, approximation).`
+    ];
+    marches.push(
+      entree("corners_plus", "Autres marchés", `Plus de ${fr(corners.ligne, 1)} corners`, corners.plus, 0.85, corners.qualite, raisons),
+      entree("corners_moins", "Autres marchés", `Moins de ${fr(corners.ligne, 1)} corners`, 1 - corners.plus, 0.85, corners.qualite, raisons)
+    );
+  } else {
+    indisponibles.push({ marche: "Corners", raison: "Donnée indisponible : pas assez de statistiques de corners fournies par la source." });
+  }
+
+  const cartons = marcheCompteur(historique, match, (m) => {
+    const j = m.stats && m.stats.cartonsJaunes;
+    const r = m.stats && m.stats.cartonsRouges;
+    if (!j || !r) return null;
+    return { domicile: j.domicile + r.domicile, exterieur: j.exterieur + r.exterieur };
+  });
+  if (cartons) {
+    const raisons = [
+      `Cartons attendus (jaunes + rouges) : ${fr(cartons.total, 1)} au total (${nomD} ${fr(cartons.modele.lambdaDomicile, 1)} + ${nomE} ${fr(cartons.modele.lambdaExterieur, 1)}).`,
+      `Moyenne de la ligue : ${fr(cartons.moyLigue, 1)} par match ; ligne retenue : ${fr(cartons.ligne, 1)}.`,
+      `Calculé sur ${cartons.modele.echantillonLigue} matchs avec cette statistique (loi de Poisson, approximation).`
+    ];
+    marches.push(
+      entree("cartons_plus", "Autres marchés", `Plus de ${fr(cartons.ligne, 1)} cartons`, cartons.plus, 0.85, cartons.qualite, raisons),
+      entree("cartons_moins", "Autres marchés", `Moins de ${fr(cartons.ligne, 1)} cartons`, 1 - cartons.plus, 0.85, cartons.qualite, raisons)
+    );
+  } else {
+    indisponibles.push({ marche: "Cartons", raison: "Donnée indisponible : pas assez de statistiques de cartons fournies par la source." });
+  }
+
+  return {
+    avertissement: AVERTISSEMENT,
+    modeles,
+    accordModeles: eloDispo ? Number(accord.toFixed(2)) : null,
+    ecartModeles: eloDispo ? Number(ecartMax.toFixed(3)) : null,
+    butsAttendus: { domicile: Number(fr(lD).replace(",", ".")), exterieur: Number(fr(lE).replace(",", ".")) },
+    elo: notes
+      ? { domicile: Math.round(notes.domicile), exterieur: Math.round(notes.exterieur) }
+      : null,
+    qualiteDonnees: {
+      score: qualite,
+      niveau: niveauQualite(qualite),
+      details: [
+        `${nomD} : ${modeleButs.matchsDomicile} matchs analysés ; ${nomE} : ${modeleButs.matchsExterieur} matchs analysés.`,
+        `Ligue : ${modeleButs.echantillonLigue} matchs (${modeleButs.memeCompetition ? "même compétition" : "toutes compétitions confondues"}).`,
+        `Elo : ${eloDispo ? "disponible" : "indisponible (historique insuffisant)"}.`,
+        `xG : ${modeleXg ? "disponible" : "indisponible"}.`,
+        `Confrontations directes : ${h2h}.`
+      ]
+    },
+    scoresProbables: top.map((s) => ({ score: s.score, probabilite: pct(s.probabilite) })),
+    marches,
+    indisponibles,
+    calculeLe: new Date().toISOString()
+  };
+}
+
+// Ajoute le champ prediction aux matchs à venir d'aujourd'hui et de demain
+// qui ont assez de données. Les autres matchs restent inchangés.
+export function enrichirAvecPredictions(matchs, maintenant = new Date()) {
+  const aujourdhui = cleJour(maintenant);
+  const demain = cleJour(new Date(maintenant.getTime() + 24 * 60 * 60 * 1000));
+  return matchs.map((m) => {
+    if (m.statut !== "A_VENIR") return m;
+    const jour = cleJour(new Date(m.dateUTC));
+    if (jour !== aujourdhui && jour !== demain) return m;
+    const prediction = predireMatch(m, matchs);
+    return prediction ? { ...m, prediction } : m;
+  });
+}
+
+
