@@ -879,3 +879,87 @@ body {
   line-height: 1.5;
   color: var(--texte-doux);
 }
+
+/* ===== Meilleures analyses du jour ===== */
+.titre-rubrique {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: var(--menthe);
+}
+
+.legende {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.legende-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--texte-doux);
+}
+
+.badge-cat {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  border-radius: 999px;
+  border: 1px solid var(--bordure);
+}
+
+.badge-cat.vert {
+  color: var(--menthe);
+  border-color: var(--menthe);
+}
+
+.badge-cat.orange {
+  color: #ffb454;
+  border-color: #ffb454;
+}
+
+.badge-cat.rouge {
+  color: var(--rouge);
+  border-color: var(--rouge);
+}
+
+.rang {
+  font-weight: 800;
+  color: var(--menthe);
+}
+
+.liste-criteres {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.critere-tete {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.critere-tete strong {
+  color: var(--menthe);
+  white-space: nowrap;
+}
+
+.critere-detail {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--texte-doux);
+}
