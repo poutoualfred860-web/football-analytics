@@ -173,3 +173,77 @@ export default function Dashboard() {
             <Ligne
               key={m.id}
               match={m}
+              extra={`${m.classement.categorie} · ${m.classement.score}/100`}
+            />
+          ))}
+        </ul>
+        <p className="bloc-vide">
+          Classement selon la fiabilité de l'analyse, pas selon les probabilités.
+        </p>
+      </Bloc>
+
+      <div className="grille-blocs">
+        <Bloc
+          titre="Prochains matchs"
+          liste={prochains}
+          vide="Aucun match à venir."
+        >
+          <ul className="liste-lignes">
+            {prochains.map((m) => (
+              <Ligne key={m.id} match={m} />
+            ))}
+          </ul>
+        </Bloc>
+
+        <Bloc
+          titre="Derniers résultats"
+          liste={resultats}
+          vide="Aucun résultat disponible."
+        >
+          <ul className="liste-lignes">
+            {resultats.map((m) => (
+              <Ligne key={m.id} match={m} />
+            ))}
+          </ul>
+        </Bloc>
+      </div>
+
+      <div className="grille-blocs">
+        <Bloc titre="Résumé des analyses automatiques">
+          {classes.length === 0 ? (
+            <p className="bloc-vide">
+              Aucune analyse disponible pour le moment.
+            </p>
+          ) : null}
+          <div className="niveaux">
+            <div className="niveau vert">
+              <strong>{categories.VERT}</strong>
+              <span>VERT</span>
+            </div>
+            <div className="niveau orange">
+              <strong>{categories.ORANGE}</strong>
+              <span>ORANGE</span>
+            </div>
+            <div className="niveau rouge">
+              <strong>{categories.ROUGE}</strong>
+              <span>ROUGE</span>
+            </div>
+          </div>
+        </Bloc>
+
+        <Bloc titre="Principales compétitions">
+          <ul className="liste-competitions">
+            {competitions.map((c) => (
+              <li key={c.nom} className="competition">
+                <span>{c.nom}</span>
+                <strong>{c.total}</strong>
+              </li>
+            ))}
+          </ul>
+        </Bloc>
+      </div>
+    </div>
+  );
+}
+
+// FIN DU FICHIER
