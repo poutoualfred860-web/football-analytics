@@ -2,6 +2,8 @@ import { useState } from "react";
 import Matchs from "./pages/Matchs.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Predictions from "./pages/Predictions.jsx";
+import MeilleuresAnalyses from "./pages/MeilleuresAnalyses.jsx";
+
 const SECTIONS = [
   { id: "dashboard", label: "Tableau de bord", icone: "🏠" },
   { id: "jour", label: "Matchs du jour", icone: "📅", onglet: "aujourdhui" },
@@ -16,19 +18,12 @@ const SECTIONS = [
 ];
 
 const DESCRIPTIONS = {
-  dashboard:
-    "Vue d'ensemble : matchs en direct, matchs du jour, meilleures analyses et performances des prédictions.",
-  analyses:
-    "Analyse automatique des matchs et classement selon leur qualité statistique (VERT, ORANGE, ROUGE).",
-  predictions:
-    "Probabilités de résultats et prédictions statistiques.",
   statistiques:
     "Statistiques des équipes et des joueurs, avec tableaux et graphiques interactifs.",
   classements: "Classements des compétitions couvertes.",
   historique:
     "Historique des analyses et évaluation des prédictions passées.",
-  parametres:
-    "Fuseau horaire : Africa/Porto-Novo. Langue : français."
+  parametres: "Fuseau horaire : Africa/Porto-Novo. Langue : français."
 };
 
 function EnPreparation({ section }) {
@@ -44,6 +39,16 @@ function EnPreparation({ section }) {
       </p>
     </div>
   );
+}
+
+function Contenu({ section }) {
+  if (section.id === "dashboard") return <Dashboard />;
+  if (section.id === "analyses") return <MeilleuresAnalyses />;
+  if (section.id === "predictions") return <Predictions />;
+  if (section.onglet) {
+    return <Matchs key={section.id} ongletInitial={section.onglet} />;
+  }
+  return <EnPreparation section={section} />;
 }
 
 export default function App() {
@@ -86,26 +91,3 @@ export default function App() {
       </aside>
 
       <div className="zone-principale">
-        <header className="haut">
-          <button
-            type="button"
-            className="bouton-menu"
-            aria-label="Ouvrir le menu"
-            onClick={() => setOuvert(true)}
-          >
-            ☰
-          </button>
-          <h1 className="haut-titre">{section.label}</h1>
-        </header>
-
-        <main className="contenu">
-          {section.onglet ? (
-            <Matchs key={section.id} ongletInitial={section.onglet} />
-          ) : (
-            <EnPreparation section={section} />
-          )}
-        </main>
-      </div>
-    </div>
-  );
-}
