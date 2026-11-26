@@ -91,3 +91,23 @@ export default function App() {
       </aside>
 
       <div className="zone-principale">
+        <header className="haut">
+          <button
+            type="button"
+            className="bouton-menu"
+            aria-label="Ouvrir le menu"
+            onClick={() => setOuvert(true)}
+          >
+            ☰
+          </button>
+          <h1 className="haut-titre">{section.label}</h1>
+        </header>
+
+        <main className="contenu">
+          <Contenu section={section} />
+        </main>
+      </div>
+    </div>
+  );
+}
+
