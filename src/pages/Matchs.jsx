@@ -1,12 +1,14 @@
-
 import { useEffect, useState } from "react";
 import { chargerMatchs } from "../services/matchs.js";
+import { COMPETITIONS_PRINCIPALES } from "../config/competitions.js";
+import StatsMatch from "../components/StatsMatch.jsx";
 
 const FUSEAU = "Africa/Porto-Novo";
 
 const ONGLETS = [
   { id: "live", label: "En direct" },
   { id: "aujourdhui", label: "Aujourd'hui" },
+  { id: "demain", label: "Demain" },
   { id: "avenir", label: "À venir" },
   { id: "termines", label: "Terminés" }
 ];
@@ -14,9 +16,25 @@ const ONGLETS = [
 const MESSAGES_VIDES = {
   live: "Aucun match en direct pour le moment.",
   aujourdhui: "Aucun match aujourd'hui.",
+  demain: "Aucun match demain.",
   avenir: "Aucun match à venir.",
   termines: "Aucun match terminé."
 };
+
+const STYLE_GROUPE = { marginBottom: 22 };
+const STYLE_TITRE_GROUPE = {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  margin: "4px 0 10px",
+  paddingBottom: 6,
+  fontSize: 14,
+  fontWeight: 800,
+  letterSpacing: "0.6px",
+  color: "var(--menthe)",
+  borderBottom: "1px solid var(--bordure)"
+};
+const STYLE_NOMBRE = { fontSize: 12, fontWeight: 600, color: "var(--texte-doux)" };
 
 function cleJour(date) {
   return new Intl.DateTimeFormat("en-CA", {
@@ -46,10 +64,12 @@ function formatDate(date) {
 
 function filtrer(matchs, onglet) {
   const aujourdhui = cleJour(new Date());
+  const demain = cleJour(new Date(Date.now() + 24 * 60 * 60 * 1000));
   return matchs.filter((m) => {
     const jour = cleJour(new Date(m.dateUTC));
     if (onglet === "live") return m.statut === "LIVE";
     if (onglet === "aujourdhui") return jour === aujourdhui;
+    if (onglet === "demain") return jour === demain;
     if (onglet === "avenir") return m.statut === "A_VENIR" && jour > aujourdhui;
     if (onglet === "termines") return m.statut === "TERMINE";
     return false;
@@ -61,6 +81,28 @@ function trier(liste, onglet) {
   copie.sort((a, b) => new Date(a.dateUTC) - new Date(b.dateUTC));
   if (onglet === "termines") copie.reverse();
   return copie;
+}
+
+// Compétitions présentes dans la liste : les principales d'abord
+// (dans l'ordre de la configuration), puis les autres par ordre alphabétique.
+export function competitionsDisponibles(liste) {
+  const noms = [...new Set(liste.map((m) => m.competition).filter(Boolean))];
+  const ordre = COMPETITIONS_PRINCIPALES.map((c) => c.nom.toLowerCase());
+  const rang = (nom) => {
+    const i = ordre.indexOf(nom.toLowerCase());
+    return i === -1 ? ordre.length : i;
+  };
+  noms.sort((a, b) => rang(a) - rang(b) || a.localeCompare(b, "fr"));
+  return noms;
+}
+
+// Regroupe les matchs par championnat, dans l'ordre des compétitions
+// principales ; à l'intérieur d'un groupe, l'ordre de la liste est conservé.
+export function grouperParCompetition(liste) {
+  return competitionsDisponibles(liste).map((nom) => ({
+    nom,
+    matchs: liste.filter((m) => m.competition === nom)
+  }));
 }
 
 function LogoEquipe({ equipe }) {
@@ -78,6 +120,7 @@ function LogoEquipe({ equipe }) {
 }
 
 function CarteMatch({ match }) {
+  const [ouvert, setOuvert] = useState(false);
   const date = new Date(match.dateUTC);
   const aDesScores =
     match.scoreDomicile !== null &&
@@ -85,7 +128,7 @@ function CarteMatch({ match }) {
     match.scoreExterieur !== null &&
     match.scoreExterieur !== undefined;
 
-  let statutTexte = `${formatDate(date)} · ${formatHeure(date)}`;
+  let statutTexte = "À venir";
   let statutClasse = "statut";
   if (match.statut === "LIVE") {
     statutTexte = match.minute ? `● EN DIRECT ${match.minute}'` : "● EN DIRECT";
@@ -95,32 +138,47 @@ function CarteMatch({ match }) {
   }
 
   return (
-    <article className="carte-match">
-      <div className="carte-entete">
-        <span>{match.competition}</span>
-        <span className={statutClasse}>{statutTexte}</span>
-      </div>
-      <div className="equipes">
-        <div className="equipe">
-          <LogoEquipe equipe={match.domicile} />
-          <span>{match.domicile.nom}</span>
+    <article className={ouvert ? "carte-match ouverte" : "carte-match"}>
+      <button
+        type="button"
+        className="carte-bouton"
+        aria-expanded={ouvert}
+        onClick={() => setOuvert(!ouvert)}
+      >
+        <div className="carte-entete">
+          <span>
+            {formatDate(date)} · {formatHeure(date)}
+          </span>
+          <span className={statutClasse}>{statutTexte}</span>
         </div>
-        <div className="score">
-          {aDesScores
-            ? `${match.scoreDomicile} - ${match.scoreExterieur}`
-            : formatHeure(date)}
+        <div className="equipes">
+          <div className="equipe">
+            <LogoEquipe equipe={match.domicile} />
+            <span>{match.domicile.nom}</span>
+          </div>
+          <div className="score">
+            {aDesScores
+              ? `${match.scoreDomicile} - ${match.scoreExterieur}`
+              : formatHeure(date)}
+          </div>
+          <div className="equipe">
+            <LogoEquipe equipe={match.exterieur} />
+            <span>{match.exterieur.nom}</span>
+          </div>
         </div>
-        <div className="equipe">
-          <LogoEquipe equipe={match.exterieur} />
-          <span>{match.exterieur.nom}</span>
+        <div className="carte-bascule">
+          {ouvert ? "Masquer les statistiques ▲" : "Voir les statistiques ▼"}
         </div>
-      </div>
+      </button>
+
+      {ouvert && <StatsMatch match={match} />}
     </article>
   );
 }
 
-export default function Matchs() {
-  const [onglet, setOnglet] = useState("aujourdhui");
+export default function Matchs({ ongletInitial = "aujourdhui" }) {
+  const [onglet, setOnglet] = useState(ongletInitial);
+  const [competition, setCompetition] = useState("toutes");
   const [matchs, setMatchs] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState(null);
@@ -150,7 +208,12 @@ export default function Matchs() {
     };
   }, []);
 
-  const liste = trier(filtrer(matchs, onglet), onglet);
+  const base = trier(filtrer(matchs, onglet), onglet);
+  const competitions = competitionsDisponibles(base);
+  const choix = competitions.includes(competition) ? competition : "toutes";
+  const liste =
+    choix === "toutes" ? base : base.filter((m) => m.competition === choix);
+  const groupes = grouperParCompetition(liste);
 
   return (
     <section>
@@ -167,18 +230,53 @@ export default function Matchs() {
         ))}
       </nav>
 
+      {competitions.length > 1 && (
+        <div className="filtre-competitions">
+          <button
+            type="button"
+            className={choix === "toutes" ? "puce actif" : "puce"}
+            onClick={() => setCompetition("toutes")}
+          >
+            Toutes
+          </button>
+          {competitions.map((nom) => (
+            <button
+              key={nom}
+              type="button"
+              className={choix === nom ? "puce actif" : "puce"}
+              onClick={() => setCompetition(nom)}
+            >
+              {nom}
+            </button>
+          ))}
+        </div>
+      )}
+
       {chargement && <div className="chargement">Chargement des matchs…</div>}
       {!chargement && erreur && <div className="erreur">{erreur}</div>}
       {!chargement && !erreur && liste.length === 0 && (
         <div className="vide">{MESSAGES_VIDES[onglet]}</div>
       )}
       {!chargement && !erreur && liste.length > 0 && (
-        <div className="liste">
-          {liste.map((m) => (
-            <CarteMatch key={m.id} match={m} />
+        <div>
+          {groupes.map((g) => (
+            <section key={g.nom} style={STYLE_GROUPE}>
+              <h2 style={STYLE_TITRE_GROUPE}>
+                <span>{g.nom}</span>
+                <span style={STYLE_NOMBRE}>
+                  {g.matchs.length} match{g.matchs.length > 1 ? "s" : ""}
+                </span>
+              </h2>
+              <div className="liste">
+                {g.matchs.map((m) => (
+                  <CarteMatch key={m.id} match={m} />
+                ))}
+              </div>
+            </section>
           ))}
         </div>
       )}
     </section>
   );
 }
+
