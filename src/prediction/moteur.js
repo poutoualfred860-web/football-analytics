@@ -1,18 +1,18 @@
-// Moteur de prédiction statistique.
-//
-// Modèles : Poisson (buts, et xG quand disponible), Elo (modèle de Davidson
-// pour le nul), avantage du terrain (moyennes domicile / extérieur de la
-// ligue), forme récente (les matchs récents pèsent plus), forces offensive
-// et défensive de chaque équipe.
-//
-// Toutes les probabilités viennent des matchs terminés fournis. Si les
-// données sont insuffisantes, le marché est déclaré indisponible : aucun
-// pourcentage n'est inventé. Une prédiction n'est jamais une certitude :
-// les probabilités affichées sont bornées entre 1 % et 99 %.
-//
-// Les pondérations (60 % Poisson / 40 % Elo, 50 % buts / 50 % xG) sont des
-// choix standards, non calibrés sur ces données : l'historique des
-// prédictions servira à les vérifier.
+ Moteur de prédiction statistique.
+
+ Modèles : Poisson (buts, et xG quand disponible), Elo (modèle de Davidson
+ pour le nul), avantage du terrain (moyennes domicile / extérieur de la
+ ligue), forme récente (les matchs récents pèsent plus), forces offensive
+ et défensive de chaque équipe.
+
+ Toutes les probabilités viennent des matchs terminés fournis. Si les
+ données sont insuffisantes, le marché est déclaré indisponible : aucun
+ pourcentage n'est inventé. Une prédiction n'est jamais une certitude :
+ les probabilités affichées sont bornées entre 1 % et 99 %.
+
+ Les pondérations (60 % Poisson / 40 % Elo, 50 % buts / 50 % xG) sont des
+ choix standards, non calibrés sur ces données : l'historique des
+ prédictions servira à les vérifier.
 
 import {
   ELO_AVANTAGE,
@@ -130,7 +130,7 @@ function compterMarque(vues) {
   };
 }
 
-// Marchés « compteur » (corners, cartons) : seulement si les données suffisent.
+ Marchés « compteur » (corners, cartons) : seulement si les données suffisent.
 function marcheCompteur(historique, match, extraire) {
   const modele = modeleCompteur(historique, match, extraire, {
     minLigue: 30,
@@ -153,7 +153,7 @@ export function predireMatch(match, historique) {
   const nomE = match.exterieur.nom;
   const dateLimite = new Date(match.dateUTC);
 
-  // 1. Modèle de Poisson sur les buts
+   1. Modèle de Poisson sur les buts
   const modeleButs = modeleCompteur(
     historique,
     match,
@@ -166,7 +166,7 @@ export function predireMatch(match, historique) {
   let lD = modeleButs.lambdaDomicile;
   let lE = modeleButs.lambdaExterieur;
 
-  // 2. Modèle complémentaire : Poisson sur les xG, si les données le permettent
+   2. Modèle complémentaire : Poisson sur les xG, si les données le permettent
   const modeleXg = modeleCompteur(
     historique,
     match,
@@ -179,12 +179,12 @@ export function predireMatch(match, historique) {
     modeles.push("Poisson (xG)");
   }
 
-  // Tous les scores possibles, de 0-0 à 10-10, avec leur probabilité exacte
-  // (équivaut à un nombre infini de simulations).
+   Tous les scores possibles, de 0-0 à 10-10, avec leur probabilité exacte
+   (équivaut à un nombre infini de simulations).
   const matrice = matriceScores(lD, lE);
   const pPoisson = resultat1N2(matrice);
 
-  // 3. Elo
+   3. Elo
   const nuls = tauxNuls(historique, match);
   const elo = calculerElo(historique, dateLimite);
   const cd = cleEquipe(match.domicile);
@@ -217,7 +217,7 @@ export function predireMatch(match, historique) {
   }
   const facteur1N2 = eloDispo ? 0.7 + 0.3 * accord : 0.85;
 
-  // Qualité des données (0 à 100)
+   Qualité des données (0 à 100)
   const h2h = nombreConfrontations(historique, match);
   const qualite = Math.round(
     40 *
@@ -232,7 +232,7 @@ export function predireMatch(match, historique) {
   const formeE = formeRecente(historique, match.exterieur, dateLimite);
   const moy = modeleButs.moyenneLigue;
 
-  // Raisons communes
+   Raisons communes
   const raisonsBase = [
     `Buts attendus : ${nomD} ${fr(lD)} – ${nomE} ${fr(lE)} (${modeles.join(" + ")}).`
   ];
@@ -265,7 +265,7 @@ export function predireMatch(match, historique) {
 
   const marches = [];
 
-  // A. Résultat
+   A. Résultat
   marches.push(
     entree("1", "Résultat", "Victoire domicile", finale.domicile, facteur1N2, qualite,
       raisonsResultat("domicile", `Force offensive de ${nomD} : ${fr(modeleButs.forces.domicile.attaque)} (1,00 = moyenne).`)),
@@ -275,7 +275,7 @@ export function predireMatch(match, historique) {
       raisonsResultat("exterieur", `Force offensive de ${nomE} : ${fr(modeleButs.forces.exterieur.attaque)} (1,00 = moyenne).`))
   );
 
-  // B. Double chance
+   B. Double chance
   marches.push(
     entree("1X", "Double chance", "Double chance 1X (domicile ou nul)",
       finale.domicile + finale.nul, facteur1N2, qualite,
@@ -285,7 +285,7 @@ export function predireMatch(match, historique) {
       [`Somme du nul (${pct(finale.nul)} %) et de la victoire extérieur (${pct(finale.exterieur)} %).`, ...raisonsBase])
   );
 
-  // C. Buts
+   C. Buts
   function marcheButs(id, seuil, plus) {
     const pPlus = probPlusDeButs(matrice, seuil);
     const a = compterTotal(modeleButs.vuesDomicile, seuil, plus);
@@ -314,7 +314,7 @@ export function predireMatch(match, historique) {
     marcheButs("moins35", 3.5, false)
   );
 
-  // D. Autres marchés
+   D. Autres marchés
   const pBtts = probLesDeuxMarquent(matrice);
   const cD = compterMarque(modeleButs.vuesDomicile);
   const cE = compterMarque(modeleButs.vuesExterieur);
@@ -423,8 +423,8 @@ export function predireMatch(match, historique) {
   };
 }
 
-// Ajoute le champ prediction aux matchs à venir d'aujourd'hui et de demain
-// qui ont assez de données. Les autres matchs restent inchangés.
+ Ajoute le champ prediction aux matchs à venir d'aujourd'hui et de demain
+ qui ont assez de données. Les autres matchs restent inchangés.
 export function enrichirAvecPredictions(matchs, maintenant = new Date()) {
   const aujourdhui = cleJour(maintenant);
   const demain = cleJour(new Date(maintenant.getTime() + 24 * 60 * 60 * 1000));
