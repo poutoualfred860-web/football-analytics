@@ -4,43 +4,43 @@ import { enrichirAvecClassement } from "../analyse/classement.js";
 import { enrichirAvecPredictions } from "../prediction/moteur.js";
 import { connecteurOpenfootball } from "./openfootball.js";
 
-// Format normalisé d'un match :
-// {
-//   id: "identifiant-unique",
-//   competition: "Nom de la compétition",
-//   confederation: "UEFA" (facultatif ; "CAF" = match exclu),
-//   dateUTC: "2026-11-25T19:00:00Z",
-//   statut: "LIVE" | "A_VENIR" | "TERMINE",
-//   minute: 63,                       (facultatif, pour LIVE)
-//   domicile: { id: "...", nom: "Équipe A", logo: "https://..." ou null },
-//   exterieur: { id: "...", nom: "Équipe B", logo: "https://..." ou null },
-//   scoreDomicile: 1 ou null,
-//   scoreExterieur: 0 ou null,
-//   scoreMiTemps: { domicile: 0, exterieur: 1 } (facultatif)
-//   stats: { ... }                    (facultatif, voir StatsMatch.jsx)
-//   absences: { domicile: [...], exterieur: [...] } (facultatif)
-// }
-//
-// Chaque source de données est un "connecteur" :
-// un objet { nom, charger } où charger() renvoie une liste de matchs
-// au format ci-dessus. Pour que l'analyse, la prédiction et le classement
-// fonctionnent, la source doit fournir aussi les matchs terminés récents
-// (au moins 5 par équipe et 30 par compétition).
-// Aucune donnée n'est inventée.
-// Les compétitions africaines sont exclues automatiquement.
-// Les champs analyse, prediction et classement sont ajoutés automatiquement.
+Format normalisé d'un match :
+ {
+  id: "identifiant-unique",
+  competition: "Nom de la compétition",
+  confederation: "UEFA" (facultatif ; "CAF" = match exclu),
+  dateUTC: "2026-11-25T19:00:00Z",
+  statut: "LIVE" | "A_VENIR" | "TERMINE",
+   minute: 63,                       (facultatif, pour LIVE)
+  domicile: { id: "...", nom: "Équipe A", logo: "https://..." ou null },
+   exterieur: { id: "...", nom: "Équipe B", logo: "https://..." ou null },
+  scoreDomicile: 1 ou null,
+   scoreExterieur: 0 ou null,
+   scoreMiTemps: { domicile: 0, exterieur: 1 } (facultatif)
+  stats: { ... }                    (facultatif, voir StatsMatch.jsx)
+  absences: { domicile: [...], exterieur: [...] } (facultatif)
+}
+
+Chaque source de données est un "connecteur" :
+ un objet { nom, charger } où charger() renvoie une liste de matchs
+ au format ci-dessus. Pour que l'analyse, la prédiction et le classement
+fonctionnent, la source doit fournir aussi les matchs terminés récents
+ (au moins 5 par équipe et 30 par compétition).
+Aucune donnée n'est inventée.
+Les compétitions africaines sont exclues automatiquement.
+Les champs analyse, prediction et classement sont ajoutés automatiquement.
 
 const CONNECTEURS = [connecteurOpenfootball];
 
 const STATUTS = ["LIVE", "A_VENIR", "TERMINE"];
 
-// Le calcul des analyses, prédictions et classements n'est refait que si les
-// données ont changé, ou après 5 minutes.
+ Le calcul des analyses, prédictions et classements n'est refait que si les
+ données ont changé, ou après 5 minutes.
 const DUREE_MEMOIRE = 5 * 60 * 1000;
 let memoire = null;
 
-// Chaque championnat est analysé avec son propre historique : c'est plus rapide
-// et plus juste (les équipes ne se rencontrent qu'au sein de leur championnat).
+ Chaque championnat est analysé avec son propre historique : c'est plus rapide
+ et plus juste (les équipes ne se rencontrent qu'au sein de leur championnat).
 function enrichirParCompetition(matchs) {
   const groupes = new Map();
   for (const m of matchs) {
