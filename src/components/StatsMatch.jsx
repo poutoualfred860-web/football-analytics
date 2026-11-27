@@ -1,16 +1,16 @@
-// Statistiques d'un match. Elles viennent du champ facultatif match.stats :
-// {
-//   possession:    { domicile: 55, exterieur: 45 },
-//   tirs:          { domicile: 12, exterieur: 7 },
-//   tirsCadres:    { domicile: 5,  exterieur: 2 },
-//   corners:       { domicile: 6,  exterieur: 3 },
-//   fautes:        { domicile: 9,  exterieur: 11 },
-//   cartonsJaunes: { domicile: 1,  exterieur: 2 },
-//   cartonsRouges: { domicile: 0,  exterieur: 0 },
-//   xg:            { domicile: 1.42, exterieur: 0.67 },
-//   buteurs: [{ joueur: "Nom", minute: 23, equipe: "domicile" | "exterieur" }]
-// }
-// Toute donnée absente s'affiche « Donnée indisponible ». Rien n'est inventé.
+Statistiques d'un match. Elles viennent du champ facultatif match.stats :
+ {
+  possession:    { domicile: 55, exterieur: 45 },
+   tirs:          { domicile: 12, exterieur: 7 },
+   tirsCadres:    { domicile: 5,  exterieur: 2 },
+  corners:       { domicile: 6,  exterieur: 3 },
+  fautes:        { domicile: 9,  exterieur: 11 },
+   cartonsJaunes: { domicile: 1,  exterieur: 2 },
+  cartonsRouges: { domicile: 0,  exterieur: 0 },
+  xg:            { domicile: 1.42, exterieur: 0.67 },
+ buteurs: [{ joueur: "Nom", minute: 23, equipe: "domicile" | "exterieur" }]
+}
+Toute donnée absente s'affiche « Donnée indisponible ». Rien n'est inventé.
 
 const INDISPONIBLE = "Donnée indisponible";
 
