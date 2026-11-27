@@ -1,14 +1,14 @@
-// Outils statistiques du moteur de prédiction.
-// Tout est calculé à partir des matchs terminés fournis. Aucune donnée
-// n'est inventée : quand les données sont insuffisantes, les fonctions
-// renvoient null.
+ Outils statistiques du moteur de prédiction.
+ Tout est calculé à partir des matchs terminés fournis. Aucune donnée
+ n'est inventée : quand les données sont insuffisantes, les fonctions
+ renvoient null.
 
 export const ELO_DEPART = 1500;
 export const ELO_K = 20;
 export const ELO_AVANTAGE = 65;
 
-const PSEUDO_MATCHS = 4; // lissage : poids de la moyenne de la ligue
-const DECROISSANCE = 0.9; // poids d'un match par rapport au suivant plus récent
+const PSEUDO_MATCHS = 4;  lissage : poids de la moyenne de la ligue
+const DECROISSANCE = 0.9;  poids d'un match par rapport au suivant plus récent
 
 export function normaliser(texte) {
   return String(texte || "")
@@ -51,7 +51,7 @@ function plusRecentD(a, b) {
   return new Date(b.dateUTC) - new Date(a.dateUTC);
 }
 
-// ---------- Poisson ----------
+ ---------- Poisson ----------
 
 export function probabilitesPoisson(lambda, max) {
   const p = [Math.exp(-lambda)];
@@ -59,7 +59,7 @@ export function probabilitesPoisson(lambda, max) {
   return p;
 }
 
-// Matrice des scores exacts : matrice[i][j] = P(domicile i, extérieur j).
+ Matrice des scores exacts : matrice[i][j] = P(domicile i, extérieur j).
 export function matriceScores(lambdaDomicile, lambdaExterieur, max = 10) {
   const pd = probabilitesPoisson(lambdaDomicile, max);
   const pe = probabilitesPoisson(lambdaExterieur, max);
@@ -90,7 +90,7 @@ export function resultat1N2(matrice) {
   return { domicile, nul, exterieur };
 }
 
-// P(total de buts > seuil), par exemple seuil 2,5.
+ P(total de buts > seuil), par exemple seuil 2,5.
 export function probPlusDeButs(matrice, seuil) {
   let somme = 0;
   matrice.forEach((ligne, i) =>
@@ -119,8 +119,8 @@ export function scoresProbables(matrice, n = 5) {
   return liste.sort((a, b) => b.probabilite - a.probabilite).slice(0, n);
 }
 
-// P(compteur > seuil) quand le compteur suit une loi de Poisson de moyenne lambda
-// (corners, cartons).
+ P(compteur > seuil) quand le compteur suit une loi de Poisson de moyenne lambda
+ (corners, cartons).
 export function probPoissonPlusDe(lambda, seuil) {
   const limite = Math.floor(seuil);
   const p = probabilitesPoisson(lambda, limite);
@@ -128,9 +128,9 @@ export function probPoissonPlusDe(lambda, seuil) {
   return Math.max(0, 1 - cumul);
 }
 
-// ---------- Forces offensive et défensive ----------
+ ---------- Forces offensive et défensive ----------
 
-// vues : [{ pour, contre }], du plus récent au plus ancien.
+ vues : [{ pour, contre }], du plus récent au plus ancien.
 function forceEquipe(vues, moyenneEquipe) {
   let sommePoids = 0;
   let pour = 0;
@@ -150,8 +150,8 @@ function forceEquipe(vues, moyenneEquipe) {
   };
 }
 
-// Matchs terminés avant la date du match, portant une valeur exploitable.
-// extraire(m) renvoie { domicile, exterieur } ou null.
+ Matchs terminés avant la date du match, portant une valeur exploitable.
+extraire(m) renvoie { domicile, exterieur } ou null.
 function matchsExploitables(historique, match, extraire) {
   const dateLimite = new Date(match.dateUTC);
   const liste = [];
@@ -164,8 +164,8 @@ function matchsExploitables(historique, match, extraire) {
   return liste;
 }
 
-// Base de calcul de la ligue : la même compétition si elle a assez de matchs,
-// sinon toutes les compétitions.
+Base de calcul de la ligue : la même compétition si elle a assez de matchs,
+sinon toutes les compétitions.
 function baseLigue(lignes, competition, minLigue) {
   const memeCompetition = lignes.filter((x) => x.m.competition === competition);
   if (memeCompetition.length >= minLigue) {
@@ -175,9 +175,9 @@ function baseLigue(lignes, competition, minLigue) {
   return null;
 }
 
-// Modèle de Poisson pour un compteur quelconque (buts, xG, corners, cartons).
-// Renvoie les moyennes attendues des deux équipes, ou null si les données
-// sont insuffisantes.
+Modèle de Poisson pour un compteur quelconque (buts, xG, corners, cartons).
+Renvoie les moyennes attendues des deux équipes, ou null si les données
+ sont insuffisantes.
 export function modeleCompteur(historique, match, extraire, options = {}) {
   const { minLigue = 30, minEquipe = 5, maxMatchs = 20 } = options;
   const lignes = matchsExploitables(historique, match, extraire);
@@ -228,7 +228,7 @@ export function modeleCompteur(historique, match, extraire, options = {}) {
   };
 }
 
-// Part des buts marqués en première mi-temps (scoreMiTemps fourni par la source).
+ Part des buts marqués en première mi-temps (scoreMiTemps fourni par la source).
 export function partPremiereMiTemps(historique, match, minLigue = 30) {
   const dateLimite = new Date(match.dateUTC);
   const lignes = [];
@@ -249,7 +249,7 @@ export function partPremiereMiTemps(historique, match, minLigue = 30) {
   return { part: butsMT / butsFin, echantillon: ligue.base.length };
 }
 
-// Part des matchs nuls dans la ligue.
+ Part des matchs nuls dans la ligue.
 export function tauxNuls(historique, match, minLigue = 30) {
   const lignes = matchsExploitables(historique, match, (m) => ({
     domicile: m.scoreDomicile,
@@ -263,7 +263,7 @@ export function tauxNuls(historique, match, minLigue = 30) {
   return { taux, echantillon: ligue.base.length };
 }
 
-// ---------- Elo ----------
+ ---------- Elo ----------
 
 export function calculerElo(historique, dateLimite) {
   const notes = new Map();
@@ -295,8 +295,8 @@ export function calculerElo(historique, dateLimite) {
   return { notes, nombre };
 }
 
-// Probabilités 1/N/2 d'après les notes Elo (modèle de Davidson, qui gère le nul
-// à partir du taux de nuls réel de la ligue).
+Probabilités 1/N/2 d'après les notes Elo (modèle de Davidson, qui gère le nul
+ à partir du taux de nuls réel de la ligue).
 export function probabilitesElo(noteDomicile, noteExterieur, taux) {
   const gd = 10 ** ((noteDomicile + ELO_AVANTAGE) / 400);
   const ge = 10 ** (noteExterieur / 400);
