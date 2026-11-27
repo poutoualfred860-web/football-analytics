@@ -40,13 +40,15 @@ const MIN_MATCHS_ELO = 8;
 export const AVERTISSEMENT =
   "Estimation statistique : une probabilité n'est jamais une certitude.";
 
+const FORMAT_JOUR = new Intl.DateTimeFormat("en-CA", {
+  timeZone: FUSEAU,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
+
 function cleJour(date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: FUSEAU,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
+  return FORMAT_JOUR.format(date);
 }
 
 function fr(nombre, decimales = 2) {
