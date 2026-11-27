@@ -1,7 +1,8 @@
 import { estCompetitionAutorisee } from "../config/competitions.js";
 import { enrichirAvecAnalyses } from "../analyse/moteur.js";
+import { enrichirAvecClassement } from "../analyse/classement.js";
 import { enrichirAvecPredictions } from "../prediction/moteur.js";
-
+import { connecteurOpenfootball } from "./openfootball.js";
 // Format normalisé d'un match :
 // {
 //   id: "identifiant-unique",
@@ -28,7 +29,7 @@ import { enrichirAvecPredictions } from "../prediction/moteur.js";
 // Les compétitions africaines sont exclues automatiquement.
 // Les champs analyse et prediction sont ajoutés automatiquement.
 
-const CONNECTEURS = [];
+const CONNECTEURS = [connecteurOpenfootball];
 
 const STATUTS = ["LIVE", "A_VENIR", "TERMINE"];
 
