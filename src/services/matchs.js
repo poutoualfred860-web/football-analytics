@@ -34,6 +34,34 @@ const CONNECTEURS = [connecteurOpenfootball];
 
 const STATUTS = ["LIVE", "A_VENIR", "TERMINE"];
 
+// Le calcul des analyses, prédictions et classements n'est refait que si les
+// données ont changé, ou après 5 minutes.
+const DUREE_MEMOIRE = 5 * 60 * 1000;
+let memoire = null;
+
+// Chaque championnat est analysé avec son propre historique : c'est plus rapide
+// et plus juste (les équipes ne se rencontrent qu'au sein de leur championnat).
+function enrichirParCompetition(matchs) {
+  const groupes = new Map();
+  for (const m of matchs) {
+    const cle = m.competition || "";
+    if (!groupes.has(cle)) groupes.set(cle, []);
+    groupes.get(cle).push(m);
+  }
+  const resultat = [];
+  for (const liste of groupes.values()) {
+    const enrichis = enrichirAvecClassement(
+      enrichirAvecPredictions(enrichirAvecAnalyses(liste))
+    );
+    for (const m of enrichis) resultat.push(m);
+  }
+  return resultat;
+}
+
+function memesEntrees(a, b) {
+  return a.length === b.length && a.every((x, i) => x === b[i]);
+}
+
 function estValide(m) {
   return (
     m &&
@@ -58,6 +86,17 @@ export async function chargerMatchs() {
     throw new Error("Toutes les sources de données ont échoué.");
   }
 
+  const entrees = resultats.map((r) =>
+    r.status === "fulfilled" ? r.value : null
+  );
+  if (
+    memoire &&
+    Date.now() - memoire.le < DUREE_MEMOIRE &&
+    memesEntrees(memoire.entrees, entrees)
+  ) {
+    return memoire.resultat;
+  }
+
   const matchs = [];
   const dejaVus = new Set();
 
@@ -71,9 +110,8 @@ export async function chargerMatchs() {
     }
   }
 
-  return enrichirAvecClassement(
-    enrichirAvecPredictions(enrichirAvecAnalyses(matchs))
-  );
+  const resultat = enrichirParCompetition(matchs);
+  memoire = { le: Date.now(), entrees, resultat };
+  return resultat;
 }
-
 
