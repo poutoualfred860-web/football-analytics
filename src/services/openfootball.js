@@ -1,8 +1,8 @@
-// Connecteur openfootball (données du domaine public, sans clé).
-// Fournit : calendrier, scores finaux et scores à la mi-temps.
-// Ne fournit pas : direct, logos, statistiques détaillées.
-// Les heures du fichier n'ont pas de fuseau : on suppose celui du pays
-// de la ligue (hypothèse). Aucune donnée n'est inventée.
+Connecteur openfootball (données du domaine public, sans clé).
+Fournit : calendrier, scores finaux et scores à la mi-temps.
+Ne fournit pas : direct, logos, statistiques détaillées.
+Les heures du fichier n'ont pas de fuseau : on suppose celui du pays
+ de la ligue (hypothèse). Aucune donnée n'est inventée.
 
 const BASE =
   "https://raw.githubusercontent.com/openfootball/football.json/master";
@@ -18,16 +18,16 @@ const LIGUES = [
 ];
 
 const SAISONS = ["2025-26", "2026-27"];
-const DUREE_CACHE = 30 * 60 * 1000; // données considérées à jour
-const DUREE_STOCKAGE = 24 * 60 * 60 * 1000; // âge maximal des données gardées
+const DUREE_CACHE = 30 * 60 * 1000;  données considérées à jour
+const DUREE_STOCKAGE = 24 * 60 * 60 * 1000; âge maximal des données gardées
 const CLE_STOCKAGE = "fa-openfootball-v1";
 
 let cache = null;
 let cacheLe = 0;
 let rafraichissement = null;
 
-// Données gardées sur l'appareil : l'application s'ouvre tout de suite,
-// puis se met à jour en arrière-plan.
+ Données gardées sur l'appareil : l'application s'ouvre tout de suite,
+puis se met à jour en arrière-plan.
 function lireStockage() {
   try {
     const texte = window.localStorage.getItem(CLE_STOCKAGE);
@@ -46,11 +46,11 @@ function ecrireStockage(matchs) {
       JSON.stringify({ le: Date.now(), matchs })
     );
   } catch (e) {
-    // stockage plein ou indisponible : sans conséquence
+    stockage plein ou indisponible : sans conséquence
   }
 }
 
-// Un match « à venir » dont l'heure est passée a un résultat inconnu : on l'écarte.
+Un match « à venir » dont l'heure est passée a un résultat inconnu : on l'écarte.
 function nettoyer(matchs) {
   const maintenant = Date.now();
   return matchs.filter(
@@ -67,29 +67,51 @@ function identifiant(texte) {
     .replace(/^-+|-+$/g, "");
 }
 
-// Heure locale du pays -> date UTC.
+Heure locale du pays -> date UTC.
+ Le formateur de dates est créé une seule fois par fuseau, et le décalage
+ est mémorisé : sans cela, la conversion de plusieurs milliers de matchs
+ralentit fortement l'application.
+const FORMATEURS = new Map();
+const DECALAGES = new Map();
+
+function formateur(fuseau) {
+  if (!FORMATEURS.has(fuseau)) {
+    FORMATEURS.set(
+      fuseau,
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: fuseau,
+        hourCycle: "h23",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    );
+  }
+  return FORMATEURS.get(fuseau);
+}
+
 function versUTC(date, heure, fuseau) {
   const [a, m, j] = date.split("-").map(Number);
   const [h, min] = (heure || "12:00").split(":").map(Number);
   const devine = Date.UTC(a, m - 1, j, h, min);
-  const parties = new Intl.DateTimeFormat("en-US", {
-    timeZone: fuseau,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit"
-  }).formatToParts(new Date(devine));
-  const lire = (type) => Number(parties.find((p) => p.type === type).value);
-  const local = Date.UTC(
-    lire("year"),
-    lire("month") - 1,
-    lire("day"),
-    lire("hour"),
-    lire("minute")
-  );
-  return new Date(devine - (local - devine));
+  const cle = fuseau + "|" + date + "|" + (heure || "");
+  let decalage = DECALAGES.get(cle);
+  if (decalage === undefined) {
+    const parties = formateur(fuseau).formatToParts(new Date(devine));
+    const lire = (type) => Number(parties.find((p) => p.type === type).value);
+    const local = Date.UTC(
+      lire("year"),
+      lire("month") - 1,
+      lire("day"),
+      lire("hour"),
+      lire("minute")
+    );
+    decalage = local - devine;
+    DECALAGES.set(cle, decalage);
+  }
+  return new Date(devine - decalage);
 }
 
 function paire(valeur) {
@@ -119,7 +141,7 @@ function convertir(m, ligue, saison, maintenant) {
   const idD = identifiant(m.team1);
   const idE = identifiant(m.team2);
 
-  // Match sans score dont l'heure est passée : résultat inconnu, on l'ignore.
+  Match sans score dont l'heure est passée : résultat inconnu, on l'ignore.
   if (!ft && quand < maintenant) return null;
 
   return {
@@ -183,7 +205,7 @@ export const connecteurOpenfootball = {
     const maintenant = Date.now();
     if (cache && maintenant - cacheLe < DUREE_CACHE) return cache;
 
-    // Au premier appel, on reprend les données gardées sur l'appareil.
+    Au premier appel, on reprend les données gardées sur l'appareil.
     if (!cache) {
       const stockage = lireStockage();
       if (stockage && maintenant - stockage.le < DUREE_STOCKAGE) {
@@ -192,8 +214,8 @@ export const connecteurOpenfootball = {
       }
     }
 
-    // Des données existent (même anciennes) : on les montre tout de suite
-    // et on se met à jour en arrière-plan.
+     Des données existent (même anciennes) : on les montre tout de suite
+    et on se met à jour en arrière-plan.
     if (cache) {
       rafraichir().catch(() => {});
       return cache;
