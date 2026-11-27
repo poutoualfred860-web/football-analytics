@@ -39,7 +39,7 @@ body {
   border-radius: 12px;
 }
 
-/* Onglets */
+* Onglets *
 .onglets {
   display: flex;
   gap: 8px;
@@ -70,7 +70,7 @@ body {
   border-color: var(--menthe);
 }
 
-/* Liste de matchs */
+* Liste de matchs *
 .liste {
   display: flex;
   flex-direction: column;
@@ -145,7 +145,7 @@ body {
   color: var(--menthe);
 }
 
-/* Messages */
+* Messages *
 .vide,
 .chargement,
 .erreur {
@@ -163,7 +163,7 @@ body {
   color: var(--rouge);
 }
 
-/* Sections en préparation */
+* Sections en préparation *
 .section-prep {
   text-align: center;
   padding: 32px 16px;
@@ -190,7 +190,7 @@ body {
   color: var(--texte-doux) !important;
 }
 
-/* Filtre par compétition */
+* Filtre par compétition *
 .filtre-competitions {
   display: flex;
   gap: 8px;
@@ -216,7 +216,7 @@ body {
   border-color: var(--menthe);
 }
 
-/* ===== Plateforme : barre latérale ===== */
+* ===== Plateforme : barre latérale ===== *
 .plateforme {
   display: flex;
   min-height: 100%;
@@ -316,7 +316,7 @@ body {
   color: var(--texte-doux);
 }
 
-/* ===== Zone principale ===== */
+* ===== Zone principale ===== *
 .zone-principale {
   flex: 1;
   min-width: 0;
@@ -357,12 +357,12 @@ body {
   padding: 16px 16px 32px;
 }
 
-/* Les onglets restent sous l'en-tête fixe */
+* Les onglets restent sous l'en-tête fixe *
 .onglets {
   top: calc(56px + env(safe-area-inset-top, 0px));
 }
 
-/* ===== Animations discrètes ===== */
+* ===== Animations discrètes ===== *
 @keyframes apparition {
   from {
     opacity: 0;
@@ -394,7 +394,7 @@ body {
   }
 }
 
-/* ===== Tablette et ordinateur : barre toujours visible ===== */
+* ===== Tablette et ordinateur : barre toujours visible ===== *
 @media (min-width: 768px) {
   .barre-laterale {
     transform: none;
@@ -416,7 +416,7 @@ body {
   }
 }
 
-/* ===== Tableau de bord ===== */
+* ===== Tableau de bord ===== *
 .dashboard {
   display: flex;
   flex-direction: column;
@@ -575,7 +575,7 @@ body {
   color: var(--rouge);
 }
 
-/* Tablette et ordinateur */
+* Tablette et ordinateur *
 @media (min-width: 768px) {
   .grille-stats {
     grid-template-columns: repeat(4, 1fr);
@@ -586,7 +586,7 @@ body {
   }
 }
 
-/* ===== Carte de match dépliable ===== */
+* ===== Carte de match dépliable ===== *
 .carte-bouton {
   display: block;
   width: 100%;
@@ -611,7 +611,7 @@ body {
   border-color: var(--menthe);
 }
 
-/* ===== Statistiques du match ===== */
+* ===== Statistiques du match ===== *
 .stats-match {
   margin-top: 12px;
   padding-top: 12px;
@@ -703,7 +703,7 @@ body {
   color: var(--texte-doux);
 }
 
-/* ===== Page Prédictions ===== */
+* ===== Page Prédictions ===== *
 .avertissement {
   margin-bottom: 12px;
   padding: 10px 12px;
@@ -880,7 +880,7 @@ body {
   color: var(--texte-doux);
 }
 
-/* ===== Meilleures analyses du jour ===== */
+* ===== Meilleures analyses du jour ===== *
 .titre-rubrique {
   margin-bottom: 12px;
   font-size: 16px;
