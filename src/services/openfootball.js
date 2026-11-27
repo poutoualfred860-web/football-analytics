@@ -18,10 +18,45 @@ const LIGUES = [
 ];
 
 const SAISONS = ["2025-26", "2026-27"];
-const DUREE_CACHE = 30 * 60 * 1000;
+const DUREE_CACHE = 30 * 60 * 1000; // données considérées à jour
+const DUREE_STOCKAGE = 24 * 60 * 60 * 1000; // âge maximal des données gardées
+const CLE_STOCKAGE = "fa-openfootball-v1";
 
 let cache = null;
 let cacheLe = 0;
+let rafraichissement = null;
+
+// Données gardées sur l'appareil : l'application s'ouvre tout de suite,
+// puis se met à jour en arrière-plan.
+function lireStockage() {
+  try {
+    const texte = window.localStorage.getItem(CLE_STOCKAGE);
+    if (!texte) return null;
+    const objet = JSON.parse(texte);
+    return objet && Array.isArray(objet.matchs) ? objet : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function ecrireStockage(matchs) {
+  try {
+    window.localStorage.setItem(
+      CLE_STOCKAGE,
+      JSON.stringify({ le: Date.now(), matchs })
+    );
+  } catch (e) {
+    // stockage plein ou indisponible : sans conséquence
+  }
+}
+
+// Un match « à venir » dont l'heure est passée a un résultat inconnu : on l'écarte.
+function nettoyer(matchs) {
+  const maintenant = Date.now();
+  return matchs.filter(
+    (m) => m.statut === "TERMINE" || new Date(m.dateUTC).getTime() >= maintenant
+  );
+}
 
 function identifiant(texte) {
   return String(texte || "")
@@ -113,11 +148,10 @@ async function chargerFichier(ligue, saison) {
     .filter(Boolean);
 }
 
-export const connecteurOpenfootball = {
-  nom: "openfootball",
-  async charger() {
-    if (cache && Date.now() - cacheLe < DUREE_CACHE) return cache;
+async function rafraichir() {
+  if (rafraichissement) return rafraichissement;
 
+  rafraichissement = (async () => {
     const demandes = [];
     for (const ligue of LIGUES) {
       for (const saison of SAISONS) demandes.push(chargerFichier(ligue, saison));
@@ -132,6 +166,40 @@ export const connecteurOpenfootball = {
     }
     cache = matchs;
     cacheLe = Date.now();
+    ecrireStockage(matchs);
     return matchs;
+  })();
+
+  try {
+    return await rafraichissement;
+  } finally {
+    rafraichissement = null;
+  }
+}
+
+export const connecteurOpenfootball = {
+  nom: "openfootball",
+  async charger() {
+    const maintenant = Date.now();
+    if (cache && maintenant - cacheLe < DUREE_CACHE) return cache;
+
+    // Au premier appel, on reprend les données gardées sur l'appareil.
+    if (!cache) {
+      const stockage = lireStockage();
+      if (stockage && maintenant - stockage.le < DUREE_STOCKAGE) {
+        cache = nettoyer(stockage.matchs);
+        cacheLe = stockage.le;
+      }
+    }
+
+    // Des données existent (même anciennes) : on les montre tout de suite
+    // et on se met à jour en arrière-plan.
+    if (cache) {
+      rafraichir().catch(() => {});
+      return cache;
+    }
+
+    return rafraichir();
   }
 };
+
