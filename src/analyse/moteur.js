@@ -13,15 +13,16 @@ const FUSEAU = "Africa/Porto-Novo";
 const MAX_MATCHS = 10;
 const MIN_MATCHS = 5;
 
-function cleJour(date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: FUSEAU,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
-}
+const FORMAT_JOUR = new Intl.DateTimeFormat("en-CA", {
+  timeZone: FUSEAU,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
 
+function cleJour(date) {
+  return FORMAT_JOUR.format(date);
+}
 function normaliser(texte) {
   return String(texte || "")
     .toLowerCase()
