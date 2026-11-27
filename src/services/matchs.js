@@ -2,6 +2,7 @@ import { estCompetitionAutorisee } from "../config/competitions.js";
 import { enrichirAvecAnalyses } from "../analyse/moteur.js";
 import { enrichirAvecClassement } from "../analyse/classement.js";
 import { enrichirAvecPredictions } from "../prediction/moteur.js";
+import { connecteurOpenfootball } from "./openfootball.js";
 
 // Format normalisé d'un match :
 // {
@@ -29,7 +30,7 @@ import { enrichirAvecPredictions } from "../prediction/moteur.js";
 // Les compétitions africaines sont exclues automatiquement.
 // Les champs analyse, prediction et classement sont ajoutés automatiquement.
 
-const CONNECTEURS = [];
+const CONNECTEURS = [connecteurOpenfootball];
 
 const STATUTS = ["LIVE", "A_VENIR", "TERMINE"];
 
@@ -74,3 +75,5 @@ export async function chargerMatchs() {
     enrichirAvecPredictions(enrichirAvecAnalyses(matchs))
   );
 }
+
+// FIN DU FICHIER
