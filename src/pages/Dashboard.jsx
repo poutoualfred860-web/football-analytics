@@ -9,13 +9,15 @@ Un match peut recevoir automatiquement trois champs facultatifs :
    analyse, prediction, classement (voir services/matchs.js).
 Tant qu'ils sont absents, les compteurs correspondants restent à 0.
 
+const FORMAT_JOUR = new Intl.DateTimeFormat("en-CA", {
+  timeZone: FUSEAU,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
+
 function cleJour(date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: FUSEAU,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
+  return FORMAT_JOUR.format(date);
 }
 
 function formatHeure(date) {
