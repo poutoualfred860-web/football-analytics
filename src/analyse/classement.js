@@ -1,20 +1,20 @@
-// Classement automatique des matchs du jour : « MEILLEURES ANALYSES DU JOUR ».
-//
-// Ce classement mesure la FIABILITÉ STATISTIQUE de l'analyse d'un match.
-// Il n'utilise jamais la hauteur d'une probabilité : un match n'est pas
-// mieux classé parce qu'un résultat paraît probable. Il n'a aucun but
-// commercial.
-//
-// Six critères, chacun noté de 0 à 100 :
-//   qualité des données (25 %), quantité de statistiques (15 %),
-//   régularité des équipes (15 %), cohérence des indicateurs (15 %),
-//   solidité du modèle (15 %), incertitude des probabilités (15 %).
-// Un critère impossible à calculer vaut 0 et apparaît comme point faible.
-//
-//   VERT   : score de 70 et plus, données de qualité 60 et plus, et un
-//            modèle de prédiction calculé
-//   ORANGE : score de 40 à 69, ou VERT impossible faute de modèle ou de données
-//   ROUGE  : score inférieur à 40
+ Classement automatique des matchs du jour : « MEILLEURES ANALYSES DU JOUR ».
+
+ Ce classement mesure la FIABILITÉ STATISTIQUE de l'analyse d'un match.
+ Il n'utilise jamais la hauteur d'une probabilité : un match n'est pas
+mieux classé parce qu'un résultat paraît probable. Il n'a aucun but
+ commercial.
+
+Six critères, chacun noté de 0 à 100 :
+   qualité des données (25 %), quantité de statistiques (15 %),
+ régularité des équipes (15 %), cohérence des indicateurs (15 %),
+   solidité du modèle (15 %), incertitude des probabilités (15 %).
+Un critère impossible à calculer vaut 0 et apparaît comme point faible.
+
+   VERT   : score de 70 et plus, données de qualité 60 et plus, et un
+          modèle de prédiction calculé
+ORANGE : score de 40 à 69, ou VERT impossible faute de modèle ou de données
+  ROUGE  : score inférieur à 40
 
 import { ELO_AVANTAGE } from "../prediction/outils.js";
 
@@ -243,7 +243,7 @@ export function classerMatch(match) {
   return { score: total, categorie, criteres, forces, faiblesses };
 }
 
-// Ajoute le champ classement aux matchs du jour déjà analysés et non terminés.
+Ajoute le champ classement aux matchs du jour déjà analysés et non terminés.
 export function enrichirAvecClassement(matchs, maintenant = new Date()) {
   const aujourdhui = cleJour(maintenant);
   return matchs.map((m) => {
@@ -254,9 +254,9 @@ export function enrichirAvecClassement(matchs, maintenant = new Date()) {
   });
 }
 
-// Matchs classés, du plus fiable au moins fiable. Aucune probabilité n'entre
-// dans le tri : en cas d'égalité, la meilleure qualité des données passe devant,
-// puis l'heure du match.
+ Matchs classés, du plus fiable au moins fiable. Aucune probabilité n'entre
+ dans le tri : en cas d'égalité, la meilleure qualité des données passe devant,
+puis l'heure du match.
 export function matchsClasses(matchs) {
   return matchs
     .filter((m) => m.classement)
