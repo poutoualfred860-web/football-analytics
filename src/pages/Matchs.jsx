@@ -35,14 +35,26 @@ const STYLE_TITRE_GROUPE = {
   borderBottom: "1px solid var(--bordure)"
 };
 const STYLE_NOMBRE = { fontSize: 12, fontWeight: 600, color: "var(--texte-doux)" };
+const STYLE_PLUS = {
+  width: "100%",
+  marginTop: 10,
+  padding: "10px 12px",
+  textAlign: "center"
+};
+
+// Nombre de matchs affichés d'abord par championnat, puis ajoutés à chaque clic.
+const TAILLE_PAGE = 12;
+const TAILLE_AJOUT = 20;
+
+const FORMAT_JOUR = new Intl.DateTimeFormat("en-CA", {
+  timeZone: FUSEAU,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+});
 
 function cleJour(date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: FUSEAU,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).format(date);
+  return FORMAT_JOUR.format(date);
 }
 
 function formatHeure(date) {
@@ -176,6 +188,39 @@ function CarteMatch({ match }) {
   );
 }
 
+function Groupe({ groupe }) {
+  const [visibles, setVisibles] = useState(TAILLE_PAGE);
+  const affiches = groupe.matchs.slice(0, visibles);
+  const restants = groupe.matchs.length - affiches.length;
+
+  return (
+    <section style={STYLE_GROUPE}>
+      <h2 style={STYLE_TITRE_GROUPE}>
+        <span>{groupe.nom}</span>
+        <span style={STYLE_NOMBRE}>
+          {groupe.matchs.length} match{groupe.matchs.length > 1 ? "s" : ""}
+        </span>
+      </h2>
+      <div className="liste">
+        {affiches.map((m) => (
+          <CarteMatch key={m.id} match={m} />
+        ))}
+      </div>
+      {restants > 0 && (
+        <button
+          type="button"
+          className="puce"
+          style={STYLE_PLUS}
+          onClick={() => setVisibles(visibles + TAILLE_AJOUT)}
+        >
+          Voir {Math.min(TAILLE_AJOUT, restants)} matchs de plus ({restants}{" "}
+          restants)
+        </button>
+      )}
+    </section>
+  );
+}
+
 export default function Matchs({ ongletInitial = "aujourdhui" }) {
   const [onglet, setOnglet] = useState(ongletInitial);
   const [competition, setCompetition] = useState("toutes");
@@ -260,19 +305,7 @@ export default function Matchs({ ongletInitial = "aujourdhui" }) {
       {!chargement && !erreur && liste.length > 0 && (
         <div>
           {groupes.map((g) => (
-            <section key={g.nom} style={STYLE_GROUPE}>
-              <h2 style={STYLE_TITRE_GROUPE}>
-                <span>{g.nom}</span>
-                <span style={STYLE_NOMBRE}>
-                  {g.matchs.length} match{g.matchs.length > 1 ? "s" : ""}
-                </span>
-              </h2>
-              <div className="liste">
-                {g.matchs.map((m) => (
-                  <CarteMatch key={m.id} match={m} />
-                ))}
-              </div>
-            </section>
+            <Groupe key={onglet + "-" + g.nom} groupe={g} />
           ))}
         </div>
       )}
