@@ -1,8 +1,8 @@
-// Connecteur openfootball (données du domaine public, sans clé).
-// Fournit : calendrier, scores finaux et scores à la mi-temps.
-// Ne fournit pas : direct, logos, statistiques détaillées.
-// Les heures du fichier n'ont pas de fuseau : on suppose celui du pays
-// de la ligue (hypothèse). Aucune donnée n'est inventée.
+ Connecteur openfootball (données du domaine public, sans clé).
+ Fournit : calendrier, scores finaux et scores à la mi-temps.
+ Ne fournit pas : direct, logos, statistiques détaillées.
+ Les heures du fichier n'ont pas de fuseau : on suppose celui du pays
+de la ligue (hypothèse). Aucune donnée n'est inventée.
 
 const BASE =
   "https://raw.githubusercontent.com/openfootball/football.json/master";
@@ -32,7 +32,7 @@ function identifiant(texte) {
     .replace(/^-+|-+$/g, "");
 }
 
-// Heure locale du pays -> date UTC.
+Heure locale du pays -> date UTC.
 function versUTC(date, heure, fuseau) {
   const [a, m, j] = date.split("-").map(Number);
   const [h, min] = (heure || "12:00").split(":").map(Number);
@@ -84,7 +84,7 @@ function convertir(m, ligue, saison, maintenant) {
   const idD = identifiant(m.team1);
   const idE = identifiant(m.team2);
 
-  // Match sans score dont l'heure est passée : résultat inconnu, on l'ignore.
+  Match sans score dont l'heure est passée : résultat inconnu, on l'ignore.
   if (!ft && quand < maintenant) return null;
 
   return {
