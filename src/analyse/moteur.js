@@ -1,13 +1,13 @@
-// Moteur d'analyse automatique des matchs.
-//
-// Il travaille uniquement à partir des matchs déjà chargés : les matchs
-// terminés servent d'historique, les matchs du jour sont analysés.
-// Aucune donnée n'est inventée : quand une donnée manque, elle vaut null
-// et elle est listée dans donneesManquantes.
-//
-// Le score (0 à 100) mesure la QUALITÉ STATISTIQUE de l'analyse
-// (quantité et fiabilité des données disponibles), pas une prédiction.
-//   VERT : 70 et plus | ORANGE : 40 à 69 | ROUGE : moins de 40
+Moteur d'analyse automatique des matchs.
+
+ Il travaille uniquement à partir des matchs déjà chargés : les matchs
+terminés servent d'historique, les matchs du jour sont analysés.
+ Aucune donnée n'est inventée : quand une donnée manque, elle vaut null
+et elle est listée dans donneesManquantes.
+
+ Le score (0 à 100) mesure la QUALITÉ STATISTIQUE de l'analyse
+(quantité et fiabilité des données disponibles), pas une prédiction.
+VERT : 70 et plus | ORANGE : 40 à 69 | ROUGE : moins de 40
 
 const FUSEAU = "Africa/Porto-Novo";
 const MAX_MATCHS = 10;
@@ -71,7 +71,7 @@ function plusRecentD(a, b) {
   return new Date(b.dateUTC) - new Date(a.dateUTC);
 }
 
-// Un match vu du côté d'une équipe.
+Un match vu du côté d'une équipe.
 function vueEquipe(m, cle) {
   const domicile = cleEquipe(m.domicile) === cle;
   const pour = domicile ? m.scoreDomicile : m.scoreExterieur;
@@ -273,8 +273,8 @@ export function analyserMatch(match, historique) {
   };
 }
 
-// Ajoute le champ analyse aux matchs du jour qui ont assez de données.
-// Les autres matchs et les matchs sans aucun historique restent inchangés.
+Ajoute le champ analyse aux matchs du jour qui ont assez de données.
+ Les autres matchs et les matchs sans aucun historique restent inchangés.
 export function enrichirAvecAnalyses(matchs, maintenant = new Date()) {
   const aujourdhui = cleJour(maintenant);
   return matchs.map((m) => {
