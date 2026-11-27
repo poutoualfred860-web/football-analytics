@@ -42,7 +42,7 @@ const STYLE_PLUS = {
   textAlign: "center"
 };
 
-// Nombre de matchs affichés d'abord par championnat, puis ajoutés à chaque clic.
+ Nombre de matchs affichés d'abord par championnat, puis ajoutés à chaque clic.
 const TAILLE_PAGE = 12;
 const TAILLE_AJOUT = 20;
 
@@ -95,8 +95,8 @@ function trier(liste, onglet) {
   return copie;
 }
 
-// Compétitions présentes dans la liste : les principales d'abord
-// (dans l'ordre de la configuration), puis les autres par ordre alphabétique.
+Compétitions présentes dans la liste : les principales d'abord
+(dans l'ordre de la configuration), puis les autres par ordre alphabétique.
 export function competitionsDisponibles(liste) {
   const noms = [...new Set(liste.map((m) => m.competition).filter(Boolean))];
   const ordre = COMPETITIONS_PRINCIPALES.map((c) => c.nom.toLowerCase());
@@ -108,8 +108,8 @@ export function competitionsDisponibles(liste) {
   return noms;
 }
 
-// Regroupe les matchs par championnat, dans l'ordre des compétitions
-// principales ; à l'intérieur d'un groupe, l'ordre de la liste est conservé.
+Regroupe les matchs par championnat, dans l'ordre des compétitions
+principales ; à l'intérieur d'un groupe, l'ordre de la liste est conservé.
 export function grouperParCompetition(liste) {
   return competitionsDisponibles(liste).map((nom) => ({
     nom,
