@@ -5,10 +5,6 @@ import { COMPETITIONS_PRINCIPALES } from "../config/competitions.js";
 
 const FUSEAU = "Africa/Porto-Novo";
 
-Un match peut recevoir automatiquement trois champs facultatifs :
-   analyse, prediction, classement (voir services/matchs.js).
-Tant qu'ils sont absents, les compteurs correspondants restent à 0.
-
 const FORMAT_JOUR = new Intl.DateTimeFormat("en-CA", {
   timeZone: FUSEAU,
   year: "numeric",
@@ -129,8 +125,6 @@ export default function Dashboard() {
     .sort((a, b) => new Date(a.dateUTC) - new Date(b.dateUTC))
     .slice(0, 5);
 
-  Classement statistique du jour (fiabilité de l'analyse, jamais la
-  hauteur d'une probabilité).
   const classes = matchsClasses(matchs);
   const categories = { VERT: 0, ORANGE: 0, ROUGE: 0 };
   classes.forEach((m) => {
@@ -248,4 +242,4 @@ export default function Dashboard() {
   );
 }
 
-
+export const FIN_DU_FICHIER = true;
