@@ -42,7 +42,7 @@ const STYLE_PLUS = {
   textAlign: "center"
 };
 
- Nombre de matchs affichés d'abord par championnat, puis ajoutés à chaque clic.
+ // Nombre de matchs affichés d'abord par championnat, puis ajoutés à chaque clic.
 const TAILLE_PAGE = 12;
 const TAILLE_AJOUT = 20;
 
